@@ -1,19 +1,20 @@
 // apiConfig.js
-// Uses React Native Platform to reliably detect environment.
-// Physical Android/iOS devices need your machine's LAN IP.
-// Web browser uses localhost.
+// Centralized backend URL selection for web, emulator, and physical devices.
 
 import { Platform } from 'react-native';
 
-const MACHINE_IP = ' 10.100.13.88';
+const OVERRIDE_URL = process.env.EXPO_PUBLIC_WOMBLY_API_URL || process.env.WOMBLY_API_URL;
 
 let API_URL;
 
-if (Platform.OS === 'web') {
-  API_URL = process.env.WOMBLY_API_URL || 'http://localhost:5000';
+if (OVERRIDE_URL) {
+  API_URL = OVERRIDE_URL;
+} else if (Platform.OS === 'web') {
+  API_URL = 'http://localhost:5000';
+} else if (Platform.OS === 'android') {
+  API_URL = 'http://10.0.2.2:5000';
 } else {
-  // Android / iOS — use machine LAN IP
-  API_URL = process.env.WOMBLY_API_URL || `http://${MACHINE_IP}:5000`;
+  API_URL = 'http://localhost:5000';
 }
 
 export const API_BASE_URL = API_URL;

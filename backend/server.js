@@ -23,7 +23,7 @@ app.use(cors())
 app.use(express.json())
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/wombly"
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://l230735:xgyvLSSTtIDMnoWW@cluster0.efoqbmu.mongodb.net/?appName=Cluster0"
 mongoose
   .connect(MONGODB_URI)
   .then(() => console.log("MongoDB connected successfully to:", MONGODB_URI))
@@ -244,18 +244,34 @@ app.post("/api/signup", async (req, res) => {
 
     const otp = otpService.generateOTP()
     otpService.storeOTP(emailLower, otp)
-    await otpService.sendOTP(emailLower, otp)
+    const emailResult = await otpService.sendOTP(emailLower, otp)
 
-    res.status(201).json({
-      success: true,
-      message: "Account created successfully. Please verify your email.",
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-      requiresOTPVerification: true,
-    })
+    if (emailResult.sent) {
+      res.status(201).json({
+        success: true,
+        message: "Account created successfully. Please verify your email.",
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+        },
+        requiresOTPVerification: true,
+      })
+    } else {
+      // Account created but email failed - still navigate to OTP screen
+      // User can use resend, or check console for OTP in dev
+      console.error(`Email sending failed for ${emailLower}: ${emailResult.reason}`)
+      res.status(201).json({
+        success: true,
+        message: "Account created. OTP email could not be sent - please try resending from the verification screen.",
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+        },
+        requiresOTPVerification: true,
+      })
+    }
   } catch (error) {
     console.error("Signup error:", error)
 
@@ -368,12 +384,20 @@ app.post("/api/resend-otp", async (req, res) => {
     }
 
     // Generate and send new OTP
-    const newOTP = await otpService.resendOTP(email.toLowerCase())
+    const result = await otpService.resendOTP(email.toLowerCase())
 
-    res.json({
-      success: true,
-      message: "OTP resent successfully",
-    })
+    if (result.emailResult.sent) {
+      res.json({
+        success: true,
+        message: "OTP resent successfully",
+      })
+    } else {
+      console.error(`Resend OTP email failed: ${result.emailResult.reason}`)
+      res.json({
+        success: true,
+        message: "OTP generated but email delivery failed. Please try again.",
+      })
+    }
   } catch (error) {
     console.error("Resend OTP error:", error)
     res.status(500).json({
@@ -423,40 +447,10 @@ app.post("/api/forgot-password", async (req, res) => {
     otpService.storeOTP(email.toLowerCase(), otp)
 
     // Send OTP email with password reset context
-    try {
-      const nodemailer = require("nodemailer")
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      })
+    const emailResult = await otpService.sendOTP(email.toLowerCase(), otp)
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email.toLowerCase(),
-        subject: "Wombly - Password Reset Verification Code",
-        html: `
-          <h2>Password Reset Request</h2>
-          <p>You requested to reset your password. Use the following verification code:</p>
-          <h1 style="color: #FF69B4; font-size: 32px; letter-spacing: 5px;">${otp}</h1>
-          <p>This code will expire in 5 minutes.</p>
-          <p>If you did not request a password reset, please ignore this email.</p>
-          <hr>
-          <p style="color: #666; font-size: 12px;">Wombly - Your Pregnancy Care Companion</p>
-        `,
-      }
-
-      await transporter.sendMail(mailOptions)
-      console.log(`Password reset OTP sent to ${email.toLowerCase()}: ${otp}`)
-    } catch (emailError) {
-      console.error("Error sending password reset email:", emailError)
-      // Still log OTP to console for development
-      console.log(`\n${"=".repeat(50)}`)
-      console.log(`Password Reset OTP for ${email.toLowerCase()}: ${otp}`)
-      console.log(`Valid for 5 minutes`)
-      console.log(`${"=".repeat(50)}\n`)
+    if (!emailResult.sent) {
+      console.error("Error sending password reset email:", emailResult.reason)
     }
 
     res.json({

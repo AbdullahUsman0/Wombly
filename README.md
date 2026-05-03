@@ -354,8 +354,9 @@ expo start
 ### Frontend Configuration (`apiConfig.js`)
 ```javascript
 export const API_BASE_URL = 'http://10.0.2.2:5000'; // Android emulator
-// Change to your machine IP for physical devices
-// Example: 'http://192.168.1.100:5000'
+// Web/iOS simulator: http://localhost:5000
+// Physical device: set EXPO_PUBLIC_WOMBLY_API_URL to your machine IP, for example:
+// EXPO_PUBLIC_WOMBLY_API_URL=http://192.168.1.100:5000
 ```
 
 ### Backend Configuration (`backend/.env`)
@@ -364,8 +365,8 @@ export const API_BASE_URL = 'http://10.0.2.2:5000'; // Android emulator
 MONGODB_URI=mongodb://localhost:27017/wombly
 
 # Email Service (Gmail)
-GMAIL_USER=your-email@gmail.com
-GMAIL_PASSWORD=your-16-char-app-password
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-16-char-app-password
 
 # YouTube API
 YOUTUBE_API_KEY=AIzaSyD...your-key
