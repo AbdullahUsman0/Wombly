@@ -10,11 +10,11 @@ let API_URL;
 if (OVERRIDE_URL) {
   API_URL = OVERRIDE_URL;
 } else if (Platform.OS === 'web') {
-  API_URL = 'https://wombly-production.up.railway.app';
+  API_URL = 'https://wombly-production-5525.up.railway.app';
 } else if (Platform.OS === 'android') {
-  API_URL = 'https://wombly-production.up.railway.app';
+  API_URL = 'https://wombly-production-5525.up.railway.app';
 } else {
-  API_URL = 'https://wombly-production.up.railway.app';
+  API_URL = 'https://wombly-production-5525.up.railway.app';
 }
 
 export const API_BASE_URL = API_URL;

@@ -135,7 +135,15 @@ const SignUpScreen = ({ navigation }) => {
 
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
-        showNotificationModal("Error", "Server returned invalid response.", "error")
+        let serverText = ""
+        try {
+          serverText = await response.text()
+        } catch (e) {
+          serverText = e.message
+        }
+        console.error('Non-JSON signup response:', serverText)
+        const snippet = serverText ? serverText.slice(0, 500) : 'No response body.'
+        showNotificationModal("Error", `Server returned invalid response: ${snippet}`, "error")
         setLoading(false)
         return
       }
