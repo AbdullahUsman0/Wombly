@@ -10,11 +10,11 @@ let API_URL;
 if (OVERRIDE_URL) {
   API_URL = OVERRIDE_URL;
 } else if (Platform.OS === 'web') {
-  API_URL = 'http://localhost:5000';
+  API_URL = 'https://wombly-one.vercel.app';
 } else if (Platform.OS === 'android') {
-  API_URL = 'http://10.0.2.2:5000';
+  API_URL = 'https://wombly-one.vercel.app';
 } else {
-  API_URL = 'http://localhost:5000';
+  API_URL = 'https://wombly-one.vercel.app';
 }
 
 export const API_BASE_URL = API_URL;
